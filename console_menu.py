@@ -33,8 +33,15 @@ def main() -> None:
         sys.exit(1)
 
     host_ports = discover()
+    if len(host_ports) == 0:
+        print("Did not discover any hosts")
+        sys.exit(1)
+
     if args.hostname:
         # Hostname given via CLI, connect to it and exit
+        if args.hostname not in host_ports:
+            print(f"Requested host {args.hostname} was not found via discovery")
+            sys.exit(1)
         connect(host_ports[args.hostname])
     else:
         # Launch into menu mode
