@@ -1,3 +1,0 @@
-#!/bin/sh
-# Little wrapper to run this using pipenv
-pipenv run python console_menu.py $@

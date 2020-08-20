@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import logging
 import re
 import shutil
@@ -61,6 +63,7 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument("hostname", nargs="?")
     arg_parser.add_argument("--logging", default="warning")
+    arg_parser.add_argument("-c", help="Unused, for shell compatibility", action="store_true")
 
     args = arg_parser.parse_args()
 
