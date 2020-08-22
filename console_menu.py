@@ -42,7 +42,7 @@ def main() -> None:
         if args.hostname not in host_ports:
             print(f"Requested host {args.hostname} was not found via discovery")
             sys.exit(1)
-        connect(host_ports[args.hostname])
+        connect(host_ports[args.hostname], args.timeout)
     else:
         # Launch into menu mode
         while True:
@@ -62,7 +62,7 @@ def main() -> None:
                 print("Invalid selection!")
                 continue
 
-            connect(host_ports[selection])
+            connect(host_ports[selection], args.timeout)
 
 
 def parse_args() -> Namespace:
@@ -70,6 +70,14 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument("hostname", nargs="?")
     arg_parser.add_argument("--logging", default="warning")
+    arg_parser.add_argument(
+        "-t",
+        "--timeout",
+        type=int,
+        default=60,
+        help="Close console connection after this many seconds of inactivity",
+    )
+
     arg_parser.add_argument("-c", help="Unused, for shell compatibility", action="store_true")
 
     args = arg_parser.parse_args()
@@ -140,11 +148,12 @@ def discover_port(port: str) -> Tuple[Optional[str], str]:
     return (hostname, port)
 
 
-def connect(port: str) -> None:
+def connect(port: str, timeout_s: float) -> None:
     """
     Get a console session open to ``port``.
     """
-    subprocess.run(["picocom", f"-b {BAUD_RATE}", port])
+    timeout_ms = int(timeout_s * 1000)
+    subprocess.run(["picocom", f"-b {BAUD_RATE}", f"-x {timeout_ms}", port])
 
 
 if __name__ == "__main__":
