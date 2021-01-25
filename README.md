@@ -9,7 +9,7 @@ Requires Python 3.x.
 
 ## Installation
 1. `git clone` this repo
-2. `pip install pyserial`
+2. `pip install pyserial pyyaml`
 
 ## Usage
 Basic usage: `python console_menu.py`
