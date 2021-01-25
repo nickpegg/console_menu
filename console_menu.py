@@ -146,10 +146,10 @@ def discover() -> Dict[str, str]:
     for future in as_completed(futures):
         (hostname, port) = future.result()
         if hostname:
-            logger.debug(f"Found {hostname} on {port}")
+            logger.info(f"Found {hostname} on {port}")
             discovered_hosts[hostname] = port
         else:
-            logger.info(f"Unable to detect hostname on port {port}")
+            logger.warning(f"Unable to detect hostname on port {port}")
 
     return discovered_hosts
 
