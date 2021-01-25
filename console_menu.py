@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import logging
+import os
 import re
 import shutil
 import subprocess
 import sys
+import yaml
 
 from argparse import ArgumentParser, Namespace
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -32,9 +34,25 @@ def main() -> None:
         print("Unable to find picocom installed")
         sys.exit(1)
 
-    host_ports = discover()
+    if args.discover:
+        host_ports = discover()
+        if len(host_ports) == 0:
+            print("Did not discover any hosts")
+            sys.exit(1)
+
+        with open(args.file, "w") as f:
+            f.write(yaml.dump(host_ports))
+        sys.exit(0)
+
+    if os.path.exists(args.file):
+        host_ports = yaml.safe_load(open(args.file))
+    else:
+        host_ports = {}
     if len(host_ports) == 0:
-        print("Did not discover any hosts")
+        print(
+            f"Did not load any host ports from {args.file}. Make sure to run "
+            "console_menu --discover to discover which hosts are on which ports"
+        )
         sys.exit(1)
 
     if args.hostname:
@@ -70,6 +88,13 @@ def parse_args() -> Namespace:
 
     arg_parser.add_argument("hostname", nargs="?")
     arg_parser.add_argument("--logging", default="warning")
+    arg_parser.add_argument("--discover", action="store_true", help="Run discovery")
+    arg_parser.add_argument(
+        "-f",
+        "--file",
+        default="ports.yml",
+        help="Path to the file to store port mapping in",
+    )
     arg_parser.add_argument(
         "-t",
         "--timeout",
@@ -78,7 +103,9 @@ def parse_args() -> Namespace:
         help="Close console connection after this many seconds of inactivity",
     )
 
-    arg_parser.add_argument("-c", help="Unused, for shell compatibility", action="store_true")
+    arg_parser.add_argument(
+        "-c", help="Unused, for shell compatibility", action="store_true"
+    )
 
     args = arg_parser.parse_args()
 
@@ -107,7 +134,9 @@ def discover() -> Dict[str, str]:
     logger.info("Discovering hosts on ports")
     for port_info in comports():
         if TTY_PATTERN in port_info.device:
-            logger.debug(f"Found interesting port {port_info.device}, discovering host on there")
+            logger.debug(
+                f"Found interesting port {port_info.device}, discovering host on there"
+            )
             futures.append(pool.submit(discover_port, port_info.device))
 
     if len(futures) == 0:
